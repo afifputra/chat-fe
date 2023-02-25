@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import openSocket, { Socket } from "socket.io-client";
 
@@ -7,6 +7,7 @@ const ROOM_ID = "63c0c80a47d345069686dc3e";
 
 const Chat: React.FC = () => {
   const navigate = useNavigate();
+  const { roomId } = useParams();
   const chatRef = useRef<HTMLInputElement>(null);
   const [socket, setSocket] = useState<Socket>({} as Socket);
 
