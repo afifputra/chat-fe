@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const Login: React.FC = () => {
@@ -23,9 +23,14 @@ const Login: React.FC = () => {
         password,
       });
 
-      const { token } = response.data;
+      const { token, expiresIn, userId } = response.data;
 
       localStorage.setItem("token", token);
+      localStorage.setItem("userId", userId);
+
+      setTimeout(() => {
+        localStorage.removeItem("token");
+      }, expiresIn);
 
       navigate("/chat");
     } catch (error) {
@@ -42,6 +47,8 @@ const Login: React.FC = () => {
       <input type="password" name="password" id="password" ref={passwordRef} />
       <br />
       <button type="submit">Login</button>
+      <br />
+      <Link to="/register">Register</Link>
     </form>
   );
 };
