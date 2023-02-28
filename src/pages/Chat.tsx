@@ -3,13 +3,17 @@ import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import openSocket, { Socket } from "socket.io-client";
 
-const ROOM_ID = "63c0c80a47d345069686dc3e";
-
 const Chat: React.FC = () => {
   const navigate = useNavigate();
   const { roomId } = useParams();
   const chatRef = useRef<HTMLInputElement>(null);
   const [socket, setSocket] = useState<Socket>({} as Socket);
+
+  const leaveRoom = () => {
+    socket.emit("unsubscribe", roomId);
+    socket.disconnect();
+    navigate("/dashboard");
+  };
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -28,7 +32,7 @@ const Chat: React.FC = () => {
 
       socket.emit("identity", { userId });
 
-      socket.emit("subscribe", ROOM_ID);
+      socket.emit("subscribe", roomId);
 
       socket.on("newMessage", (data: any) => {
         renderMessage(data);
@@ -56,7 +60,7 @@ const Chat: React.FC = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:7001/room/${ROOM_ID}/message`,
+        `http://localhost:7001/room/${roomId}/message`,
         {
           message,
         },
@@ -82,7 +86,7 @@ const Chat: React.FC = () => {
         <input type="text" name="message" ref={chatRef} />
         <button type="submit">Send</button>
       </form>
-      <button onClick={() => socket.disconnect()}>Disconnect</button>
+      <button onClick={leaveRoom}>Leave Room</button>
     </>
   );
 };

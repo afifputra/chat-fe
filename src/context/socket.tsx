@@ -1,52 +1,40 @@
-import { createContext } from "react";
+import { createContext, useState } from "react";
 import openSocket, { Socket } from "socket.io-client";
 
 export const SocketContext = createContext({
   socket: {} as Socket,
   connect: () => {},
-  disconnect: () => {},
-  identity: () => {},
-  on: (event: string, callback: (data: any) => void) => {},
-  emit: (event: string, data: any) => {},
+  disconnect: (roomId: string) => {},
+  identity: (userId: string) => {},
+  joinRoom: (roomId: string) => {},
 });
 
 const SocketContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const socket = openSocket("http://localhost:7001");
+  const [socket, setSocket] = useState<Socket>({} as Socket);
 
   const connect = () => {
-    socket.connect();
+    const socket = openSocket("http://localhost:7001");
+    setSocket(socket);
   };
 
-  const disconnect = () => {
+  const disconnect = (roomId: string) => {
+    socket.emit("unsubscribe", roomId);
     socket.disconnect();
   };
 
-  const identity = () => {
-    socket.emit("identity");
+  const identity = (userId: string) => {
+    socket.on("connect", () => {
+      console.log("connected");
+
+      socket.emit("identity", { userId });
+    });
   };
 
-  const on = (event: string, callback: (data: any) => void) => {
-    socket.on(event, callback);
+  const joinRoom = (roomId: string) => {
+    socket.emit("subscribe", roomId);
   };
 
-  const emit = (event: string, data: any) => {
-    socket.emit(event, data);
-  };
-
-  return (
-    <SocketContext.Provider
-      value={{
-        socket,
-        connect,
-        disconnect,
-        identity,
-        on,
-        emit,
-      }}
-    >
-      {children}
-    </SocketContext.Provider>
-  );
+  return <SocketContext.Provider value={{ socket, connect, disconnect, identity, joinRoom }}>{children}</SocketContext.Provider>;
 };
 
 export default SocketContextProvider;

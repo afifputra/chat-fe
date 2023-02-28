@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const Login: React.FC = () => {
@@ -32,24 +32,26 @@ const Login: React.FC = () => {
         localStorage.removeItem("token");
       }, expiresIn);
 
-      navigate("/chat");
+      navigate("/dashboard");
     } catch (error) {
       console.log(error);
     }
   };
 
   return (
-    <form onSubmit={onSubmitHandler}>
-      <label htmlFor="email">Email</label>
-      <input type="email" name="email" id="email" ref={emailRef} />
-      <br />
-      <label htmlFor="password">Password</label>
-      <input type="password" name="password" id="password" ref={passwordRef} />
-      <br />
-      <button type="submit">Login</button>
-      <br />
-      <Link to="/register">Register</Link>
-    </form>
+    <>
+      <form onSubmit={onSubmitHandler}>
+        <label htmlFor="email">Email</label>
+        <input type="email" name="email" id="email" ref={emailRef} />
+        <br />
+        <label htmlFor="password">Password</label>
+        <input type="password" name="password" id="password" ref={passwordRef} />
+        <br />
+        <button type="submit">Login</button>
+        <br />
+      </form>
+      <button onClick={() => navigate("/register")}>Register</button>
+    </>
   );
 };
 

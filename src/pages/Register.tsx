@@ -31,7 +31,7 @@ const Register: React.FC = () => {
         password,
       });
 
-      navigate("/login");
+      navigate("/");
     } catch (error) {
       console.log(error);
     }
