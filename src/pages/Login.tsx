@@ -1,9 +1,13 @@
-import { useRef } from "react";
+import { useRef, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+import { AuthContext } from "../context/auth";
+
 const Login: React.FC = () => {
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
+
   const emailRef = useRef<HTMLInputElement>(null);
   const passwordRef = useRef<HTMLInputElement>(null);
 
@@ -23,15 +27,9 @@ const Login: React.FC = () => {
         password,
       });
 
-      const { token, expiresIn, userId } = response.data;
+      const { token, userId } = response.data;
 
-      localStorage.setItem("token", token);
-      localStorage.setItem("userId", userId);
-
-      setTimeout(() => {
-        localStorage.removeItem("token");
-      }, expiresIn);
-
+      login(token, userId);
       navigate("/dashboard");
     } catch (error) {
       console.log(error);
@@ -44,12 +42,14 @@ const Login: React.FC = () => {
         <label htmlFor="email">Email</label>
         <input type="email" name="email" id="email" ref={emailRef} />
         <br />
+        <br />
         <label htmlFor="password">Password</label>
         <input type="password" name="password" id="password" ref={passwordRef} />
         <br />
-        <button type="submit">Login</button>
         <br />
+        <button type="submit">Login</button>
       </form>
+      <br />
       <button onClick={() => navigate("/register")}>Register</button>
     </>
   );
