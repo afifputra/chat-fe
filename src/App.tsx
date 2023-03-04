@@ -1,12 +1,15 @@
 import { RouterProvider } from "react-router-dom";
 import AuthContextProvider from "./context/auth";
+import SocketContextProvider from "./context/socket";
 
 import router from "./routes";
 
 function App() {
   return (
     <AuthContextProvider>
-      <RouterProvider router={router}></RouterProvider>
+      <SocketContextProvider>
+        <RouterProvider router={router}></RouterProvider>
+      </SocketContextProvider>
     </AuthContextProvider>
   );
 }

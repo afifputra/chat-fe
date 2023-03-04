@@ -1,10 +1,10 @@
 import { createContext, useState } from "react";
-import openSocket, { Socket } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 
 export const SocketContext = createContext({
   socket: {} as Socket,
   connect: () => {},
-  disconnect: (roomId: string) => {},
+  disconnect: () => {},
   identity: (userId: string) => {},
   joinRoom: (roomId: string) => {},
 });
@@ -13,21 +13,21 @@ const SocketContextProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [socket, setSocket] = useState<Socket>({} as Socket);
 
   const connect = () => {
-    const socket = openSocket("http://localhost:7001");
+    const socket = io("http://localhost:7001");
+
     setSocket(socket);
+
+    socket.on("connect", () => {
+      console.log("connected");
+    });
   };
 
-  const disconnect = (roomId: string) => {
-    socket.emit("unsubscribe", roomId);
+  const disconnect = () => {
     socket.disconnect();
   };
 
   const identity = (userId: string) => {
-    socket.on("connect", () => {
-      console.log("connected");
-
-      socket.emit("identity", { userId });
-    });
+    socket.emit("identity", { userId });
   };
 
   const joinRoom = (roomId: string) => {
