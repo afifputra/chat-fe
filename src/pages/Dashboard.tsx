@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState, useContext } from "react";
 
 import { AuthContext } from "../context/auth";
-// import useSocket from "../hooks/use-socket";
+import { socket } from "../utils/socket";
+import { Link } from "react-router-dom";
 
 interface Room {
   id: string;
@@ -33,12 +34,12 @@ const Dashboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   const navigate = useNavigate();
-  // const socket = useSocket();
   const { logout, isLoggedIn, relogin } = useContext(AuthContext);
 
   const onLogoutHandler = () => {
     logout();
-    navigate("/");
+    socket.disconnect();
+    window.location.href = "/";
   };
 
   const getRecentChats = async () => {
@@ -49,8 +50,7 @@ const Dashboard: React.FC = () => {
         },
       });
 
-      console.log(response.data);
-      // setRooms(response.data);
+      setRooms(response.data);
     } catch (error) {
       console.log(error);
     }
@@ -63,8 +63,10 @@ const Dashboard: React.FC = () => {
 
     (async () => {
       await getRecentChats();
-      // setIsLoading(false);
+      setIsLoading(false);
     })();
+
+    socket.emit("identity", localStorage.getItem("userId"));
   }, []);
 
   if (isLoading) {
@@ -74,6 +76,8 @@ const Dashboard: React.FC = () => {
   return (
     <div>
       <h1>Dashboard</h1>
+      <br />
+      <Link to="/contact">Contacts</Link>
       <br />
       <h2>Recent Chats</h2>
       <div>
