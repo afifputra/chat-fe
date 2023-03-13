@@ -1,17 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import openSocket, { Socket } from "socket.io-client";
+
+import { socket } from "../utils/socket";
 
 const Chat: React.FC = () => {
   const navigate = useNavigate();
   const { roomId } = useParams();
   const chatRef = useRef<HTMLInputElement>(null);
-  const [socket, setSocket] = useState<Socket>({} as Socket);
+  const [oldMessages, setOldMessages] = useState<any[]>([]);
 
   const leaveRoom = () => {
     socket.emit("unsubscribe", roomId);
-    socket.disconnect();
     navigate("/dashboard");
   };
 
@@ -23,20 +23,22 @@ const Chat: React.FC = () => {
       navigate("/");
     }
 
-    const socket = openSocket("http://localhost:7001");
+    (async () => {
+      try {
+        const response = await axios.get(`http://localhost:7001/room/${roomId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-    setSocket(socket);
+        setOldMessages(response.data.conversation);
+      } catch (error) {
+        console.log(error);
+      }
+    })();
 
-    socket.on("connect", () => {
-      console.log("connected");
-
-      socket.emit("identity", { userId });
-
-      socket.emit("subscribe", roomId);
-
-      socket.on("newMessage", (data: any) => {
-        renderMessage(data);
-      });
+    socket.on("newMessage", (data: any) => {
+      renderMessage(data);
     });
   }, [navigate]);
 
@@ -81,7 +83,14 @@ const Chat: React.FC = () => {
 
   return (
     <>
-      <div id="chat"></div>
+      <div id="chat">
+        {oldMessages.map((message, index) => (
+          <div className="message" key={index}>
+            <div className="message__user">{message.postedByUser.firstName}</div>
+            <div className="message__text">{message.message}</div>
+          </div>
+        ))}
+      </div>
       <form onSubmit={onSubmitHandler}>
         <input type="text" name="message" ref={chatRef} />
         <button type="submit">Send</button>

@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+import { socket } from "../utils/socket";
+
 const Contact: React.FC = () => {
   const navigate = useNavigate();
 
@@ -21,6 +23,28 @@ const Contact: React.FC = () => {
     }
   };
 
+  const createRoom = async (contactId: string) => {
+    try {
+      const response = await axios.post(
+        `http://localhost:7001/room/initiate`,
+        {
+          userIds: [contactId],
+          type: "consumer_to_consumer",
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      socket.emit("subscribe", response.data.chatRoomId, contactId);
+      navigate(`/chat/${response.data.chatRoomId}`);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   useEffect(() => {
     getContacts();
   }, []);
@@ -30,12 +54,11 @@ const Contact: React.FC = () => {
       <h1>Contacts</h1>
       <ul>
         {contacts.map((contact: any) => (
-          <>
-            <li key={contact._id}>
-              {contact.firstName} {contact.lastName}
-            </li>
-            <button onClick={() => navigate(`/chat/${contact._id}`)}>Chat</button>
-          </>
+          <li key={contact._id}>
+            {contact.firstName} {contact.lastName}
+            <br />
+            <button onClick={createRoom.bind(null, contact._id)}>Chat</button>
+          </li>
         ))}
       </ul>
       <br />

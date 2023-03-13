@@ -56,6 +56,16 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const openChat = (
+    roomId: string,
+    userIds: {
+      _id: string;
+    }[]
+  ) => {
+    socket.emit("subscribe", roomId, userIds[1]._id);
+    navigate(`/chat/${roomId}`);
+  };
+
   useEffect(() => {
     if (!isLoggedIn) {
       relogin();
@@ -85,7 +95,7 @@ const Dashboard: React.FC = () => {
           <div key={room.id}>
             <h3>{room.userIds[0].firstName}</h3>
             <p>{room.lastMessage.message}</p>
-            <button onClick={() => navigate(`/chat/${room.id}`)}>Open Chat</button>
+            <button onClick={openChat.bind(null, room.id, room.userIds)}>Open Chat</button>
           </div>
         ))}
       </div>
