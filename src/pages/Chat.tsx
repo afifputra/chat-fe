@@ -8,7 +8,10 @@ const Chat: React.FC = () => {
   const navigate = useNavigate();
   const { roomId } = useParams();
   const chatRef = useRef<HTMLInputElement>(null);
+
   const [oldMessages, setOldMessages] = useState<any[]>([]);
+  const [page, setPage] = useState<number>(0);
+  const [limit, setLimit] = useState<number>(10);
 
   const leaveRoom = () => {
     socket.emit("unsubscribe", roomId);
@@ -25,13 +28,13 @@ const Chat: React.FC = () => {
 
     (async () => {
       try {
-        const response = await axios.get(`http://localhost:7001/room/${roomId}`, {
+        const response = await axios.get(`http://localhost:7001/room/${roomId}?page=${page}&limit=${limit}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        setOldMessages(response.data.conversation);
+        setOldMessages((prev) => [...prev, ...response.data.conversation]);
       } catch (error) {
         console.log(error);
       }
@@ -81,6 +84,27 @@ const Chat: React.FC = () => {
     }
   };
 
+  const fetchNextMessage = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      navigate("/");
+    }
+
+    try {
+      const response = await axios.get(`http://localhost:7001/room/${roomId}?page=${page + 1}&limit=${limit}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setOldMessages((prev) => [...prev, ...response.data.conversation]);
+      setPage((prev) => prev + 1);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <>
       <div id="chat">
@@ -91,11 +115,21 @@ const Chat: React.FC = () => {
           </div>
         ))}
       </div>
+      <br />
       <form onSubmit={onSubmitHandler}>
         <input type="text" name="message" ref={chatRef} />
         <button type="submit">Send</button>
       </form>
-      <button onClick={leaveRoom}>Leave Room</button>
+      <br />
+      <button
+        onClick={leaveRoom}
+        style={{
+          marginRight: "10px",
+        }}
+      >
+        Leave Room
+      </button>
+      <button onClick={fetchNextMessage}>Next Chat</button>
     </>
   );
 };
